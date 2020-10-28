@@ -33,7 +33,7 @@ USE course_project;
 
 DROP TABLE IF EXISTS project_statuses;
 CREATE TABLE IF NOT EXISTS project_statuses (
-	id SERIAL PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     status varchar(255) NOT NULL DEFAULT ''
 );
 
