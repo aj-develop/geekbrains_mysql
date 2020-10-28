@@ -8,7 +8,9 @@
 /**
     2. минимальное количество таблиц - 10
 
-    projects: - таблица проектов с описанием.
+    projects: аблица проектов с описанием.
+    project_statuses: список статусов проекта
+    project_statuses_change_log: лог изменения статуса проекта
     tasks: задачи - основные составляющие, из которых состоят проекты.
     projects_tasks: конкретные задачи конкретных проектов.
     users: пользователи системы
@@ -29,13 +31,33 @@ DROP DATABASE IF EXISTS course_project;
 CREATE DATABASE course_project;
 USE course_project;
 
+DROP TABLE IF EXISTS project_statuses;
+CREATE TABLE IF NOT EXISTS project_statuses (
+	id SERIAL PRIMARY KEY,
+    status varchar(255) NOT NULL DEFAULT ''
+);
+
 DROP TABLE IF EXISTS projects;
 CREATE TABLE projects (
     id SERIAL PRIMARY KEY,
     created_at DATETIME DEFAULT NOW(),
     updated_at DATETIME ON UPDATE CURRENT_TIMESTAMP,
     title varchar(255) NOT NULL DEFAULT '',
-    description text
+    description text,
+    status_id BIGINT UNSIGNED NOT NULL,
+
+    FOREIGN KEY (status_id)  REFERENCES project_statuses (id)
+);
+
+DROP TABLE IF EXISTS project_statuses_change_log;
+CREATE TABLE project_statuses_change_log (
+    id SERIAL PRIMARY KEY,
+    project_id BIGINT UNSIGNED NOT NULL,
+    status_id BIGINT UNSIGNED NOT NULL,
+    created_at DATETIME DEFAULT NOW(),
+
+    FOREIGN KEY (project_id)  REFERENCES projects (id),
+    FOREIGN KEY (status_id)  REFERENCES project_statuses (id)
 );
 
 DROP TABLE IF EXISTS tasks;
@@ -93,8 +115,8 @@ CREATE TABLE users_teams (
 
     PRIMARY KEY (user_id, team_id),
 
-    FOREIGN KEY (user_id)  REFERENCES users (id)  ON DELETE cascade,
-    FOREIGN KEY (team_id)  REFERENCES teams (id)  ON DELETE cascade
+    FOREIGN KEY (user_id)  REFERENCES users (id) ON DELETE cascade,
+    FOREIGN KEY (team_id)  REFERENCES teams (id) ON DELETE cascade
 );
 
 DROP TABLE IF EXISTS statuses;
@@ -144,17 +166,23 @@ CREATE TABLE messages (
 
 *****/
 
-INSERT INTO `projects` (`id`,`created_at`, `updated_at`,`title`, `description`) VALUES
-(1, '2020-10-28 17:52:48', '2020-10-29 17:52:48', 'dolorem dsd', 'Necessitatibus et sunt ex qui nam. Quod porro cupiditate blanditiis eaque molestias.'),
-(2, '2019-11-28 17:52:48', '2020-10-29 17:52:48', 'est xer', 'Quod deserunt autem cum quo quos. Dolor omnis quas totam eligendi mollitia quae.'),
-(3, '2017-03-28 17:52:48', '2020-10-29 17:52:48', 'itaque sddsds', 'Quis ipsa iusto aspernatur aut. Repellat quo ex aut harum.'),
-(4, '2018-05-18 17:52:48', '2020-10-29 17:52:48', 'quam sdsd ', 'Et praesentium non beatae labore porro quisquam deleniti.'),
-(5, '2013-10-28 17:52:48', '2020-10-29 17:52:48', 'adipisci wedsds', 'Nobis praesentium consequatur accusantium est quidem.'),
-(6, '2012-10-28 17:52:48', '2020-10-29 17:52:48', 'dolorem', 'Officia ab quos qui et ab assumenda. Sunt itaque minus modi impedit totam voluptatem dolores.'),
-(7, '2019-07-28 17:52:48', '2020-10-29 17:52:48', 'aut', 'Ut consequuntur praesentium ipsum minima dolores sapiente.'),
-(8, '2018-04-28 17:52:48', '2020-10-29 17:52:48', 'auter dsd', 'Aut minus soluta reprehenderit voluptates. Non magnam dicta exercitationem vel.'),
-(9, '2019-10-22 17:52:48', '2020-10-29 17:52:48', 'est', 'Veritatis illum odio assumenda cupiditate voluptatem id omnis.'),
-(10, '2019-04-24 17:52:48', '2020-10-29 17:52:48', 'facilis', 'Exercitationem earum vero sint dolorem assumenda provident.');
+INSERT INTO project_statuses (`status`) VALUES
+('Активен'),
+('Выполнен'),
+('Отменен'),
+('Устарел');
+
+INSERT INTO `projects` (`id`,`created_at`, `updated_at`,`title`, `description`, `status_id`) VALUES
+(1, '2020-10-28 17:52:48', '2020-10-29 17:52:48', 'dolorem dsd', 'Necessitatibus et sunt ex qui nam. Quod porro cupiditate blanditiis eaque molestias.',1),
+(2, '2019-11-28 17:52:48', '2020-10-29 17:52:48', 'est xer', 'Quod deserunt autem cum quo quos. Dolor omnis quas totam eligendi mollitia quae.',1),
+(3, '2017-03-28 17:52:48', '2020-10-29 17:52:48', 'itaque sddsds', 'Quis ipsa iusto aspernatur aut. Repellat quo ex aut harum.',2),
+(4, '2018-05-18 17:52:48', '2020-10-29 17:52:48', 'quam sdsd ', 'Et praesentium non beatae labore porro quisquam deleniti.',1),
+(5, '2013-10-28 17:52:48', '2020-10-29 17:52:48', 'adipisci wedsds', 'Nobis praesentium consequatur accusantium est quidem.',3),
+(6, '2012-10-28 17:52:48', '2020-10-29 17:52:48', 'dolorem', 'Officia ab quos qui et ab assumenda. Sunt itaque minus modi impedit totam voluptatem dolores.',4),
+(7, '2019-07-28 17:52:48', '2020-10-29 17:52:48', 'aut', 'Ut consequuntur praesentium ipsum minima dolores sapiente.',2),
+(8, '2018-04-28 17:52:48', '2020-10-29 17:52:48', 'auter dsd', 'Aut minus soluta reprehenderit voluptates. Non magnam dicta exercitationem vel.',2),
+(9, '2019-10-22 17:52:48', '2020-10-29 17:52:48', 'est', 'Veritatis illum odio assumenda cupiditate voluptatem id omnis.',1),
+(10, '2019-04-24 17:52:48', '2020-10-29 17:52:48', 'facilis', 'Exercitationem earum vero sint dolorem assumenda provident.',1);
 
 INSERT INTO `tasks` (`id`,`created_at`, `updated_at`,`title`, `description`) VALUES
 (1, '2019-10-28 17:52:48', '2020-10-29 17:52:48', 'Necessitatibus', 'Necessitatibus et sunt ex qui nam. Quod porro cupiditate blanditiis eaque molestias.'),
@@ -302,4 +330,20 @@ CALL big_project()//
 DELIMITER ;
 
 
+-- триггер
+DELIMITER //
 
+DROP TRIGGER IF EXISTS project_statuses_change_log//
+CREATE TRIGGER project_statuses_change_log AFTER UPDATE ON projects
+FOR EACH ROW
+BEGIN
+    IF NEW.status_id != OLD.status_id
+        THEN
+            INSERT INTO project_statuses_change_log SET project_id  = NEW.id, status_id = NEW.status_id;
+    END IF;
+END//
+
+DELIMITER ;
+
+-- Проверяем, работает.
+UPDATE projects SET status_id = '2' WHERE id = 2;
